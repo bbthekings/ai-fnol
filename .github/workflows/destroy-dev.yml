@@ -1,0 +1,36 @@
+name: "Destroy Dev Infrastructure (Freeze All Costs)"
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # job 1  
+  destroy:
+    runs-on: ubuntu-latest
+    steps:
+      # step 1
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # step 2 
+      - name: Read resource group name from parameters
+        id: params
+        run: |
+            RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+            echo "rg_name=$RG_NAME" >> $GITHUB_OUTPUT
+      # step 3
+      - name: Delete Resource Group
+        run: |
+            az group delete \
+            --name "${{ steps.params.outputs.rg_name }}" \
+            --yes \
+            --no-wait
+
+

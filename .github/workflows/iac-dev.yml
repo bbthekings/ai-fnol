@@ -1,0 +1,63 @@
+#######################################################
+# wf name
+#######################################################
+name: 'Deploy <Dev> Pilot Infrastructure' 
+
+#######################################################
+# branch
+# Trigger only when code is pushed to the main branch
+#######################################################
+on:
+  push:
+    branches:
+      - main  
+    paths:
+      - 'iac/**'
+  workflow_dispatch:
+
+#######################################################
+# GitHub Actions request an OIDC token from GitHub 
+# and exchange it for Azure access. The workflow must 
+# have "id-token: write" to fetch that token
+#######################################################
+permissions:
+  id-token: write
+  contents: read
+    
+#######################################################
+# all jobs
+#######################################################
+jobs:
+  ######
+  # job 1: 'deploy-infra'
+  deploy-infra:
+    runs-on: ubuntu-latest
+    ###################################################
+    # all steps
+    ###################################################
+    steps:
+      #########
+      # step 1. Checkout the code from your repo
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #########
+      # step 2. Login to Azure using GitHub OIDC federation
+      # this is OIDC-style login pattern
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      #########
+      # step 3. Deploy the Bicep file
+      - name: Deploy Dev Main Bicep
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription # Match the Bicep targetScope
+          region: germanywestcentral
+          template: ./iac/env/dev/main.bicep
+          parameters: ./iac/env/dev/main.parameters.json
+          deploymentName: deploy-dev-infra # just a readable name for the Azure deployment operation
