@@ -35,7 +35,7 @@ module storageModule '../../modules/storage/main.bicep' = {
       scope: resourceGroup(rgname) 
 		  params: { 
         location: location 
-        kvFnolPilotName:  stFnolPilotName
+        stFnolPilotName:  stFnolPilotName
 		  }
       dependsOn: [
         resourceGroupModule
