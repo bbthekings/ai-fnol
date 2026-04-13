@@ -19,8 +19,6 @@ param acrFnolPilotName string
 //
 param aksFnolPilotName string 
 //
-param aksToAcrRoleName string 
-//
 var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
 // call resource-group
@@ -117,7 +115,6 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
       scope: resourceGroup(rgname) 
 		  params: { 
         aksPrincipalId:  aksModule.outputs.aksIdentityId
-        aksToAcrRoleName: aksToAcrRoleName
         acrName:  acrFnolPilotName
 		  }
       dependsOn: [

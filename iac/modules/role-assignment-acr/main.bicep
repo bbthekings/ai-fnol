@@ -1,6 +1,5 @@
 
 
-
 param aksPrincipalId string
 param acrName string
 
