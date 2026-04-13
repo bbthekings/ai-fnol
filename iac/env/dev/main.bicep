@@ -1,21 +1,25 @@
 
 targetScope = 'subscription' // High-level starting point
 
-param rgname string = 'rg-fnol-pilot-dev'
-param location string = 'germanywestcentral'
+param rgname string 
+param location string 
 //
-param vnetName string = 'vnet-fnol-pilot'
+param vnetName string 
 //
-param stFnolPilotName string = 'storagefnolpilot'
+param stFnolPilotName string 
 //
-param kvFnolPilotName string = 'kv-fnol'
+param kvFnolPilotName string 
 //
-param amlWorkspaceName string = 'aml-wspace-fnol'
+param amlWorkspaceName string 
 //
-param logAnalyticsName string = 'log-analytics-fnol'
-param applInsightsName string = 'appl-insights-fnol'
+param logAnalyticsName string 
+param applInsightsName string 
 //
-param acrFnolPilotName string = 'acr-fnol-pilot'
+param acrFnolPilotName string 
+//
+param aksFnolPilotName string 
+//
+param aksToAcrRoleName string 
 //
 var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
@@ -94,6 +98,32 @@ module acrModule '../../modules/acr/main.bicep' = {
       ]
 }
 
+// call aks
+module aksModule '../../modules/aks/main.bicep' = {
+		  name: 'aksDeployment'
+      scope: resourceGroup(rgname) 
+		  params: { 
+        location: location 
+        aksFnolPilotName:  aksFnolPilotName
+		  }
+      dependsOn: [
+        resourceGroupModule
+      ]
+}
+
+// call aks --access role--> acr
+module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
+		  name: 'aksToAcrRoleDeployment'
+      scope: resourceGroup(rgname) 
+		  params: { 
+        aksPrincipalId:  aksModule.outputs.aksIdentityId
+        aksToAcrRoleName: aksToAcrRoleName
+		  }
+      dependsOn: [
+        acrModule
+      ]
+}
+
 // call aml
 module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
 		  name: 'amlWorkspaceDeployment'
@@ -110,6 +140,8 @@ module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
         resourceGroupModule
       ]
 }
+
+
 
 
  

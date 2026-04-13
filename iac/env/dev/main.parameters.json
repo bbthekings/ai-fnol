@@ -28,7 +28,12 @@
     } ,
     "acrFnolPilotName": {
       "value": "acrfnol"
-    }    
-
+    },
+    "aksFnolPilotName": {
+      "value": "aks-fnol-pilot"
+    },
+    "aksToAcrRoleName": {
+      "value": "acaks-to-acr-role"
+    }
   }
 }

@@ -1,6 +1,6 @@
 // params
-param location string = 'germanywestcentral' // default region
-param stFnolPilotName string = 'storagefnolpilot' 
+param location string
+param stFnolPilotName string
 
 // vars
 var stFnolPilotNameUnique = '${stFnolPilotName}${uniqueString(resourceGroup().id)}' 

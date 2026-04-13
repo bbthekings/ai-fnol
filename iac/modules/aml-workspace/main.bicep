@@ -1,6 +1,6 @@
 
-param amlWorkspaceName string = 'aml-fnol-wspace'
-param location string = 'germanywestcentral'
+param amlWorkspaceName string
+param location string
 
 param storageAccountId string
 param keyVaultId string

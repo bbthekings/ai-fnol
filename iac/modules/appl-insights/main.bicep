@@ -1,7 +1,7 @@
 
-param logAnalyticsName string = 'log-analytics-fnol'
-param applInsightsName string = 'appl-insights-fnol'
-param location string = 'germanywestcentral'
+param logAnalyticsName string
+param applInsightsName string
+param location string
 
 
 // 1. The "Storage Bucket" for logs

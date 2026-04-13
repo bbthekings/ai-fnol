@@ -1,5 +1,5 @@
 
-param acrFnolPilotName string = 'acr-fnol-pilot'
+param acrFnolPilotName string
 param acrFnolPilotNameUnique string = '${acrFnolPilotName}${uniqueString(subscription().id, resourceGroup().name)}'
 
 param location string = 'germanywestcentral' // default region

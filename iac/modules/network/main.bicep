@@ -1,6 +1,6 @@
 
-param vnetName string = 'vnet-fnol-pilot'
-param location string = 'germanywestcentral' // default region
+param vnetName string
+param location string
 
 resource nsgAks 'Microsoft.Network/networkSecurityGroups@2024-03-01' = {
   name: 'nsg-aks'

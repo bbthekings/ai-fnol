@@ -1,6 +1,6 @@
 
-param kvFnolPilotName string = 'kv-fnol-pilot'
-param location string = 'germanywestcentral' // default region
+param kvFnolPilotName string
+param location string
 
 resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
   

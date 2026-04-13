@@ -1,7 +1,7 @@
 targetScope='subscription'
 
-param location string = 'germanywestcentral' // default region
-param resourceGroupName  string = 'rg-fnol-pilot-dev' // default region
+param location string
+param resourceGroupName  string
 
 resource rgFnolPilot 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 		  name: resourceGroupName  
