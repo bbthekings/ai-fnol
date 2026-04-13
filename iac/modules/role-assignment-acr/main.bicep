@@ -1,11 +1,11 @@
 
 
 param aksPrincipalId string
-param acrName string
+param acrFnolPilotName string
 
 
 resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
-  name: acrName
+  name: acrFnolPilotName
 }
 
  // Entra ID provides the ID Badge (Identity). 
