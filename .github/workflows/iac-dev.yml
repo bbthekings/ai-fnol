@@ -62,6 +62,8 @@ jobs:
           parameters: ./iac/env/dev/main.parameters.json
           deploymentName: deploy-dev-infra # just a readable name for the Azure deployment operation
       #########
+      # AksToAcr access-badge: created on top of the ACR resource
+      #########
       - name: Assign AcrPull to AKS managed identity
         run: |
           ACR_ID=$(az acr show --name acrfnol --resource-group rg-fnol-pilot-dev --query id -o tsv)
