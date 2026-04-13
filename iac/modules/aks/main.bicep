@@ -2,7 +2,7 @@
 param aksFnolPilotName string
 param location string
 
-resource aksFnolPilot 'Microsoft.ContainerService/managedClusters@2024-03-01' = {
+resource aksFnolPilot 'Microsoft.ContainerService/managedClusters@2024-01-01' = {
  name: aksFnolPilotName
  location: location
 
