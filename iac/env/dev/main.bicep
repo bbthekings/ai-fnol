@@ -109,8 +109,9 @@ module aksModule '../../modules/aks/main.bicep' = {
       ]
 }
 
+// this is added as workflow step after azure/arm-deploy@v2 (gh action)
 // call aks --access role--> acr
-module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
+/* module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
   name: 'aksToAcrRoleDeployment'
   scope: resourceGroup(rgname)
   params: {
@@ -120,7 +121,7 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
   dependsOn: [
     resourceGroupModule
   ]
-}
+} */
 
 // call aml
 module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {

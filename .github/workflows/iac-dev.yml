@@ -53,14 +53,6 @@ jobs:
 
       #########
       # step 3. Deploy the Bicep file
-      - name: Debug role-assignment module
-        run: |
-          az bicep build --file ./iac/modules/role-assignment-acr/main.bicep --stdout
-      - name: Show current commit
-        run: |
-          git rev-parse HEAD
-          git status
-      #########
       - name: Deploy Dev Main Bicep
         uses: azure/arm-deploy@v2
         with:
@@ -69,3 +61,14 @@ jobs:
           template: ./iac/env/dev/main.bicep
           parameters: ./iac/env/dev/main.parameters.json
           deploymentName: deploy-dev-infra # just a readable name for the Azure deployment operation
+      #########
+      - name: Assign AcrPull to AKS managed identity
+        run: |
+          ACR_ID=$(az acr show --name acrfnol --resource-group rg-fnol-pilot-dev --query id -o tsv)
+          AKS_PRINCIPAL_ID=$(az aks show --name aks-fnol-pilot --resource-group rg-fnol-pilot-dev --query identity.principalId -o tsv)
+
+          az role assignment create \
+            --assignee-object-id "$AKS_PRINCIPAL_ID" \
+            --assignee-principal-type ServicePrincipal \
+            --role AcrPull \
+            --scope "$ACR_ID"          
