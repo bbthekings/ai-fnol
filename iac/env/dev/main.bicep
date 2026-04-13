@@ -118,6 +118,7 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
 		  params: { 
         aksPrincipalId:  aksModule.outputs.aksIdentityId
         aksToAcrRoleName: aksToAcrRoleName
+        acrName:  acrFnolPilotName
 		  }
       dependsOn: [
         acrModule

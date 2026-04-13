@@ -2,6 +2,12 @@
 
 param aksToAcrRoleName  string
 param aksPrincipalId string
+param acrName string
+
+
+resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
+  name: acrName
+}
 
  // Entra ID provides the ID Badge (Identity). 
  // This code tells the Security Guard at the ACR Building (Role Assignment)
@@ -11,11 +17,14 @@ param aksPrincipalId string
 resource aksToAcrRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   
   // Use a deterministic name so redeployments don't create duplicates
-  name: guid(aksToAcrRoleName, 'AcrPull') // The "AcrPull" definition is a global badge template in Azure.
-
+  name: guid(aksToAcrRoleName, aksPrincipalId, 'AcrPull') // The "AcrPull" definition is a global badge template in Azure.
+  scope: acrResource
   properties: {
     // The official Azure ID for the 'AcrPull' Role
-    roleDefinitionId: subscriptionResourceId(subscription().subscriptionId, 'Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-435727c5752a')
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      '7f951dda-4ed3-4680-a7ca-435727c5752a'
+    )
     // The "Badge Number" of the Master Server
     principalId: aksPrincipalId
     // CRITICAL: Always specify principalType to avoid intermittent deployment delays
