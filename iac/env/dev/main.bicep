@@ -16,7 +16,7 @@ param logAnalyticsName string = 'log-analytics-fnol'
 param applInsightsName string = 'appl-insights-fnol'
 //
 param acrFnolPilotName string = 'acr-fnol-pilot'
-
+//
 var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
 // call resource-group
@@ -83,7 +83,7 @@ module applInsightsModule '../../modules/appl-insights/main.bicep' = {
 
 // call acr
 module acrModule '../../modules/acr/main.bicep' = {
-		  name: 'amlWorkspaceDeployment'
+		  name: 'acrDeployment'
       scope: resourceGroup(rgname) 
 		  params: { 
         location: location 
