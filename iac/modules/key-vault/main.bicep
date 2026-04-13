@@ -14,7 +14,6 @@ resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
   enableSoftDelete: true        // Allows recovery of deleted items
 
   accessPolicies: [] // mandatory for creation 
-  publicNetworkAccess: 'Enabled' // we can harden later
 
   sku:  {
     family : 'A' // shared service
