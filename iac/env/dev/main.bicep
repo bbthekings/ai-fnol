@@ -6,6 +6,7 @@ param location string = 'germanywestcentral'
 param vnetName string = 'vnet-fnol-pilot'
 param stFnolPilotName string = 'storagefnolpilot'
 param kvFnolPilotName string = 'kv-fnol'
+param amlWorkspaceName string = 'aml-wspace-fnol'
 
 var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
@@ -57,3 +58,22 @@ module keyvaultModule '../../modules/key-vault/main.bicep' = {
       ]
 }
 
+// call aml
+module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
+		  name: 'amlWorkspaceDeployment'
+      scope: resourceGroup(rgname) 
+		  params: { 
+        location: location 
+        amlWorkspaceName:  amlWorkspaceName
+        storageAccountId: storageModule.outputs.storageAccountId 
+        keyVaultId: keyvaultModule.outputs.keyVaultId
+        // appInsightsId: appInsightsModule.outputs.id 
+        // containerRegistryId: acrModule.outputs.id
+		  }
+      dependsOn: [
+        resourceGroupModule
+      ]
+}
+    
+ 
+    

@@ -38,3 +38,4 @@ output storageAccountName string = stFnolPilot.name
 output blobServiceName string = blobService.name
 output containerName string = pilotContainer.name
 output blobEndpoint string = stFnolPilot.properties.primaryEndpoints.blob
+output storageAccountId string = stFnolPilot.id

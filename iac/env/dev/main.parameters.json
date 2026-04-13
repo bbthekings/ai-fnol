@@ -16,6 +16,9 @@
     },
     "kvFnolPilotName": {
       "value": "kv-fnol-pilot"
+    },
+    "amlWorkspaceName": {
+      "value": "aml-fnol-wpace"
     }
   }
 }
