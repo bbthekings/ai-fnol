@@ -5,7 +5,9 @@ param rgname string = 'rg-fnol-pilot-dev'
 param location string = 'germanywestcentral'
 param vnetName string = 'vnet-fnol-pilot'
 param stFnolPilotName string = 'storagefnolpilot'
-param kvFnolPilotName string = 'kv-fnol-pilot'
+param kvFnolPilotName string = 'kv-fnol'
+
+var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
 // call resource-group
 module resourceGroupModule '../../modules/resource-group/main.bicep' = {
@@ -48,7 +50,7 @@ module keyvaultModule '../../modules/key-vault/main.bicep' = {
       scope: resourceGroup(rgname) 
 		  params: { 
         location: location 
-        kvFnolPilotName:  kvFnolPilotName
+        kvFnolPilotName:  kvFnolPilotNameUnique
 		  }
       dependsOn: [
         resourceGroupModule
