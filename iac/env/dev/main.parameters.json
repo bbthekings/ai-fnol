@@ -13,6 +13,9 @@
     },
     "stFnolPilotName": {
       "value": "stfnol"
+    },
+    "kvFnolPilotName": {
+      "value": "kv-fnol-pilot"
     }
   }
 }
