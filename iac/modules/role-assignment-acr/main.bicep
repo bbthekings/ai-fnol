@@ -1,6 +1,6 @@
 
 
-param aksToAcrRoleName  string
+
 param aksPrincipalId string
 param acrName string
 
@@ -17,7 +17,7 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existin
 resource aksToAcrRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   
   // Use a deterministic name so redeployments don't create duplicates
-  name: guid(aksToAcrRoleName, aksPrincipalId, 'AcrPull') // The "AcrPull" definition is a global badge template in Azure.
+  name: guid(acrResource.id, aksPrincipalId, 'AcrPull') // The "AcrPull" definition is a global badge template in Azure.
   scope: acrResource
   properties: {
     // The official Azure ID for the 'AcrPull' Role
