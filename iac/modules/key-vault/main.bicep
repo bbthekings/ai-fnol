@@ -13,6 +13,9 @@ resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
   enablePurgeProtection: false // for a pilot: the vault can still be deleted cleanly during destroy tests.
   enableSoftDelete: true        // Allows recovery of deleted items
 
+  accessPolicies: [] // mandatory for creation 
+  publicNetworkAccess: 'Enabled' // we can harden later
+
   sku:  {
     family : 'A' // shared service
     name: 'standard' // not premium
