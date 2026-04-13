@@ -15,7 +15,7 @@ param amlWorkspaceName string
 param logAnalyticsName string 
 param applInsightsName string 
 //
-param acrFnolPilotName string 
+param acrName string 
 //
 param aksFnolPilotName string 
 //
@@ -89,7 +89,7 @@ module acrModule '../../modules/acr/main.bicep' = {
       scope: resourceGroup(rgname) 
 		  params: { 
         location: location 
-        acrFnolPilotName:  acrFnolPilotName
+        acrName: acrName
 		  }
       dependsOn: [
         resourceGroupModule
@@ -105,21 +105,22 @@ module aksModule '../../modules/aks/main.bicep' = {
         aksFnolPilotName:  aksFnolPilotName
 		  }
       dependsOn: [
-        acrModule
+        resourceGroupModule
       ]
 }
 
 // call aks --access role--> acr
 module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
-		  name: 'aksToAcrRoleDeployment'
-      scope: resourceGroup(rgname) 
-		  params: { 
-        aksPrincipalId:  aksModule.outputs.aksIdentityId
-        acrFnolPilotName:  acrFnolPilotName
-		  }
-      dependsOn: [
-        resourceGroupModule
-      ]
+  name: 'aksToAcrRoleDeployment'
+  scope: resourceGroup(rgname)
+  params: {
+    aksPrincipalId: aksModule.outputs.aksIdentityId
+    acrName: acrModule.outputs.acrName
+  }
+  dependsOn: [
+    acrModule
+    aksModule
+  ]
 }
 
 // call aml

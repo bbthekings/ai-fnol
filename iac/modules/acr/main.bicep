@@ -1,12 +1,12 @@
 
-param acrFnolPilotName string
+param acrName string
 // param acrFnolPilotNameUnique string = '${acrFnolPilotName}${uniqueString(subscription().id, resourceGroup().name)}'
 
 param location string = 'germanywestcentral' // default region
 
 resource acrFnolPilot 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
 
-   name: acrFnolPilotName
+   name: acrName
    location: location
 
    sku: {
@@ -21,7 +21,7 @@ resource acrFnolPilot 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
 }
 
 output acrFnolPilotId string = acrFnolPilot.id
-output acrFnolPilotName string = acrFnolPilot.name
+output acrName string = acrFnolPilot.name
 
 
 

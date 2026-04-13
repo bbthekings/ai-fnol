@@ -1,33 +1,26 @@
 
+targetScope = 'resourceGroup'
 
 param aksPrincipalId string
-param acrFnolPilotName string
-
+param acrName string
 
 resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
-  name: acrFnolPilotName
+  name: acrName
 }
 
- // Entra ID provides the ID Badge (Identity). 
- // This code tells the Security Guard at the ACR Building (Role Assignment)
- // to let anyone with that specific badge inside.
+resource acrPullRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '7f951dda-4ed3-4680-a7ca-435727c5752a'
+}
 
-// role=keycard for AKS to access ACR
 resource aksToAcrRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  
-  // Use a deterministic name so redeployments don't create duplicates
-  name: guid(acrResource.id, aksPrincipalId, 'AcrPull') // The "AcrPull" definition is a global badge template in Azure.
+  name: guid(acrResource.id, aksPrincipalId, acrPullRole.id)
   scope: acrResource
   properties: {
-    // The official Azure ID for the 'AcrPull' Role
-    roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-435727c5752a'
-    // The "Badge Number" of the Master Server
+    roleDefinitionId: acrPullRole.id
     principalId: aksPrincipalId
-    // CRITICAL: Always specify principalType to avoid intermittent deployment delays
-    principalType: 'ServicePrincipal' 
+    principalType: 'ServicePrincipal'
   }
 }
 
-output aksToAcrRoleName string = aksToAcrRole.name
 output aksToAcrRoleId string = aksToAcrRole.id
-
