@@ -105,7 +105,7 @@ module aksModule '../../modules/aks/main.bicep' = {
         aksFnolPilotName:  aksFnolPilotName
 		  }
       dependsOn: [
-        resourceGroupModule
+        acrModule
       ]
 }
 
@@ -118,7 +118,7 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
         acrName:  acrFnolPilotName
 		  }
       dependsOn: [
-        acrModule
+        resourceGroupModule
       ]
 }
 
