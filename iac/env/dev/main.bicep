@@ -65,24 +65,7 @@ module keyvaultModule '../../modules/key-vault/main.bicep' = {
       ]
 }
 
-// call aml
-module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
-		  name: 'amlWorkspaceDeployment'
-      scope: resourceGroup(rgname) 
-		  params: { 
-        location: location 
-        amlWorkspaceName:  amlWorkspaceName
-        storageAccountId: storageModule.outputs.storageAccountId 
-        keyVaultId: keyvaultModule.outputs.keyVaultId
-        // appInsightsId: appInsightsModule.outputs.id 
-        // containerRegistryId: acrModule.outputs.id
-		  }
-      dependsOn: [
-        resourceGroupModule
-      ]
-}
-    
- // call appl-insights
+// call appl-insights
 module applInsightsModule '../../modules/appl-insights/main.bicep' = {
 		  name: 'applInsightsDeployment'
       scope: resourceGroup(rgname) 
@@ -95,4 +78,23 @@ module applInsightsModule '../../modules/appl-insights/main.bicep' = {
         resourceGroupModule
       ]
 }
+
+// call aml
+module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
+		  name: 'amlWorkspaceDeployment'
+      scope: resourceGroup(rgname) 
+		  params: { 
+        location: location 
+        amlWorkspaceName:  amlWorkspaceName
+        storageAccountId: storageModule.outputs.storageAccountId 
+        keyVaultId: keyvaultModule.outputs.keyVaultId
+        applInsightsId: applInsightsModule.outputs.applInsightsId 
+        // containerRegistryId: acrModule.outputs.id
+		  }
+      dependsOn: [
+        resourceGroupModule
+      ]
+}
+    
+ 
     
