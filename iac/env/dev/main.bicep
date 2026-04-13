@@ -118,8 +118,7 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
     acrName: acrModule.outputs.acrName
   }
   dependsOn: [
-    acrModule
-    aksModule
+    resourceGroupModule
   ]
 }
 

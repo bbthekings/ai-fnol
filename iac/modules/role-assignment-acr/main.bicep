@@ -1,4 +1,3 @@
-
 targetScope = 'resourceGroup'
 
 param aksPrincipalId string
@@ -8,16 +7,11 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existin
   name: acrName
 }
 
-resource acrPullRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  scope: subscription()
-  name: '7f951dda-4ed3-4680-a7ca-435727c5752a'
-}
-
 resource aksToAcrRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acrResource.id, aksPrincipalId, acrPullRole.id)
+  name: guid(acrResource.id, aksPrincipalId, 'AcrPull')
   scope: acrResource
   properties: {
-    roleDefinitionId: acrPullRole.id
+    roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-435727c5752a'
     principalId: aksPrincipalId
     principalType: 'ServicePrincipal'
   }
