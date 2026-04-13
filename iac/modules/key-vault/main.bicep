@@ -10,10 +10,9 @@ resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
  properties: {
   tenantId: subscription().tenantId
   enableRbacAuthorization: true // enable rbac (disables legacy Access Policies)
-  enablePurgeProtection: false // for a pilot: the vault can still be deleted cleanly during destroy tests.
   enableSoftDelete: true        // Allows recovery of deleted items
-
   accessPolicies: [] // mandatory for creation 
+  publicNetworkAccess: 'Enabled' // we can harden later
 
   sku:  {
     family : 'A' // shared service
