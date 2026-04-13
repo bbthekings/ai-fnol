@@ -20,10 +20,7 @@ resource aksToAcrRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: acrResource
   properties: {
     // The official Azure ID for the 'AcrPull' Role
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      '7f951dda-4ed3-4680-a7ca-435727c5752a'
-    )
+    roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-435727c5752a'
     // The "Badge Number" of the Master Server
     principalId: aksPrincipalId
     // CRITICAL: Always specify principalType to avoid intermittent deployment delays
