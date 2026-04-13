@@ -19,6 +19,12 @@
     },
     "amlWorkspaceName": {
       "value": "aml-fnol-wpace"
-    }
+    },
+    "logAnalyticsName": {
+      "value": "log-analytics-fnol"
+    },
+    "applInsightsName": {
+      "value": "appl-insights-fnol"
+    }    
   }
 }

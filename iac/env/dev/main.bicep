@@ -3,10 +3,17 @@ targetScope = 'subscription' // High-level starting point
 
 param rgname string = 'rg-fnol-pilot-dev'
 param location string = 'germanywestcentral'
+//
 param vnetName string = 'vnet-fnol-pilot'
+//
 param stFnolPilotName string = 'storagefnolpilot'
+//
 param kvFnolPilotName string = 'kv-fnol'
+//
 param amlWorkspaceName string = 'aml-wspace-fnol'
+//
+param logAnalyticsName string = 'log-analytics-fnol'
+param applInsightsName string = 'appl-insights-fnol'
 
 var kvFnolPilotNameUnique string = take('${kvFnolPilotName}-${uniqueString(subscription().id, rgname)}', 24)
 
@@ -75,5 +82,17 @@ module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
       ]
 }
     
- 
+ // call appl-insights
+module applInsightsModule '../../modules/appl-insights/main.bicep' = {
+		  name: 'applInsightsDeployment'
+      scope: resourceGroup(rgname) 
+		  params: { 
+        location: location 
+        logAnalyticsName: logAnalyticsName
+        applInsightsName: applInsightsName
+		  }
+      dependsOn: [
+        resourceGroupModule
+      ]
+}
     
