@@ -5,8 +5,7 @@ param location string = 'germanywestcentral'
 param storageAccountId string
 param keyVaultId string
 param applInsightsId string
-// param containerRegistryId string
-
+param containerRegistryId string
 
 resource amlFnolWspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   
@@ -28,9 +27,9 @@ properties: {
     storageAccount: storageAccountId
     keyVault: keyVaultId
     applicationInsights: applInsightsId
-    // containerRegistry: containerRegistryId
+    containerRegistry: containerRegistryId
     // Basic settings for a Pilot
-    // hbiWorkspace: false // Set to true if handling highly sensitive data
+    hbiWorkspace: false // Set to true if handling highly sensitive data
   }
 }
 
