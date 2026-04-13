@@ -115,7 +115,7 @@ module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
       scope: resourceGroup(rgname) 
 		  params: { 
         aksPrincipalId:  aksModule.outputs.aksIdentityId
-        acrName:  acrFnolPilotName
+        acrFnolPilotName:  acrFnolPilotName
 		  }
       dependsOn: [
         resourceGroupModule
