@@ -53,6 +53,14 @@ jobs:
 
       #########
       # step 3. Deploy the Bicep file
+      - name: Debug role-assignment module
+        run: |
+          az bicep build --file ./iac/modules/role-assignment-acr/main.bicep --stdout
+      - name: Show current commit
+        run: |
+          git rev-parse HEAD
+          git status
+      #########
       - name: Deploy Dev Main Bicep
         uses: azure/arm-deploy@v2
         with:
