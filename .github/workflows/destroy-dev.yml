@@ -56,15 +56,20 @@ jobs:
           done
 
           # 4. Purge AML Workspaces
-          echo "Searching for all soft-deleted AML Workspaces..."
-          
-          # The correct command for the 'ml' extension (v2)
-          DELETED_WORKSPACES=$(az ml workspace list --soft-deleted --query "[].name" -o tsv)
-          
-          for ws in $DELETED_WORKSPACES; do
-              echo "Permanently deleting AML Workspace: $ws"
-              # We need to specify the location for AML purges usually
-              az ml workspace delete --name "$ws" --permanently-delete --yes --no-wait || echo "Already purging $ws"
-          done
+          # Get the current subscription ID
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
+          # 3. List soft-deleted AML workspaces
+          # We store them in a variable first to avoid xargs errors if the list is empty
+          DELETED_WS=$(az rest --method get \
+              --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/deletedWorkspaces?api-version=2024-04-01-preview" \
+              --query "value[].name" -o tsv)
+
+          # 4. Iterate and Purge
+          for ws in $DELETED_WS; do
+              echo "Purging AML Workspace: $ws"
+              az rest --method delete \
+                  --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/deletedWorkspaces/$ws?api-version=2024-04-01-preview" \
+                  --verbose || echo "Failed to purge $ws"
+          done
 
