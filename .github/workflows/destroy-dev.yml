@@ -59,12 +59,17 @@ jobs:
               echo "Purging Key Vault: $vault"
               az keyvault purge --name "$vault" --no-wait || echo "Already purging $vault"
           done
-          
-          # 4. Purge AML Workspaces (Global loop)
+
+          # 4. Purge AML Workspaces
           echo "Searching for all soft-deleted AML Workspaces..."
-          DELETED_WORKSPACES=$(az ml workspace list-deleted --query "[].name" -o tsv)
+          
+          # The correct command for the 'ml' extension (v2)
+          DELETED_WORKSPACES=$(az ml workspace list --soft-deleted --query "[].name" -o tsv)
+          
           for ws in $DELETED_WORKSPACES; do
               echo "Permanently deleting AML Workspace: $ws"
+              # We need to specify the location for AML purges usually
               az ml workspace delete --name "$ws" --permanently-delete --yes --no-wait || echo "Already purging $ws"
           done
+
 
