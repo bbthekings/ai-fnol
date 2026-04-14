@@ -39,18 +39,22 @@ jobs:
             --yes \
             --no-wait
 
-      - name: Purge Key Vault (Cleanup Ghost)
-        if: steps.params.outputs.keyVaultName != '' 
-        run: |
-          echo "Purging Key Vault to release global name..."
-          # We use continue-on-error because if it's already purged, we don't want the build to fail
-          az keyvault purge --name "${{ steps.params.outputs.keyVaultName }}" || echo "Vault not found or already purged."
+            # 1. Purge all Soft-Deleted Key Vaults
+            echo "Searching for all soft-deleted Key Vaults..."
+            DELETED_VAULTS=$(az keyvault list-deleted --query "[].name" -o tsv)
 
-      - name: Purge AML Workspace (Stop Meta-Costs)
-        if: steps.params.outputs.amlWorkspaceNameOut != ''
-        run: |
-          echo "Permanently deleting AML Workspace..."
-          # Using the ML extension to ensure a hard delete
-          az ml workspace delete --name "${{ steps.params.outputs.amlWorkspaceNameOut }}" \
-            --resource-group "${{ steps.params.outputs.rgname }}" \
-            --permanently-delete --yes || echo "AML Workspace already gone."
+            for vault in $DELETED_VAULTS; do
+                echo "Purging Key Vault: $vault"
+                az keyvault purge --name "$vault" --no-wait
+            done
+
+            # 2. Purge all Soft-Deleted AML Workspaces
+            echo "Searching for all soft-deleted AML Workspaces..."
+            # Note: AML requires the location to find deleted workspaces
+            DELETED_WORKSPACES=$(az ml workspace list-deleted --query "[].name" -o tsv)
+
+            for ws in $DELETED_WORKSPACES; do
+                echo "Permanently deleting AML Workspace: $ws"
+                az ml workspace delete --name "$ws" --permanently-delete --yes --no-wait
+            done
+
