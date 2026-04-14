@@ -58,6 +58,7 @@ jobs:
 
           # Purge Deleted AML Workspaces
           # 1. Get Subscription ID and Location
+          echo "Searching for all soft-deleted AML workspaces..."
           SUBSCRIPTION_ID=$(az account show --query id -o tsv)
           # We pick the location from your RG or a default one you're using
           LOCATION="germanywestcentral" 
