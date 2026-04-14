@@ -1,0 +1,49 @@
+##################################################################################
+# Readme: This is for the Pods:
+# tells the Master: "I want my application (Pods) to run on the worker nodes."
+# The Master then picks a node and tells it: "Start this container."
+# Target: The Compute (CPU/RAM) of the Nodes.
+##################################################################################
+
+# IaC: i deployed two nodes
+  # Thus:
+  # Node 1 (VM): will run run the 'fnol-score' Pod.
+  # Node 2 (VM): Sitting empty (ready for scaling or failover).
+
+##################################################################################
+# apiVersion & kind: create a deployment-controller for running stateless apps
+##################################################################################
+apiVersion: apps/v1
+kind: Deployment
+# The unique name for this "blueprint" in the cluster.
+metadata:
+  name: fnol-score-deployment 
+
+##################################################################################
+# spec = desired state
+##################################################################################
+spec:
+  # cluster keeps exactly one copy of my app running. 
+  # If it crashes, AKS will automatically restart it.
+  replicas: 1
+  # "search query." : tells the deployment-controller: 
+  # to be responsible for any Pods with label app: 'fnol-score' "
+  selector:
+    matchLabels:
+      app: fnol-score
+  # most important part:  describes the actual Pod (container) that will be created.
+  template:
+    metadata:
+      # We "tag" the Pod here so the selector in the previous section can find it.
+      labels:
+        app: fnol-score
+    spec:
+      containers:
+      - name: fnol-score-container
+        # tells AKS which Docker image to pull. 
+        # since we use __IMAGE__, gitHub action will swap this for something like 
+        # 'acrName.azurecr.io/fnol-score:dev'
+        image: __IMAGE__
+        # opens a "window" on the container at port 8000 so traffic can reach the FastAPI resource.
+        ports:
+        - containerPort: 8000

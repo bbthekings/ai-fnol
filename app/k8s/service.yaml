@@ -1,0 +1,41 @@
+
+##################################################################################
+# Readme: This is for the network.
+#
+# Since Pods can die and restart with new IP addresses, the Service acts like a 
+# "Permanent Receptionist."
+# When a request comes in, the Service knows exactly which nodes are currently running 
+# my app and sends the traffic there.
+# Target: The Communication (Networking) between the outside world and your Nodes.
+##################################################################################
+
+##################################################################################
+# The Request Journey:
+#
+# >The Client (Me):  send a POST request (fnol) to a Public IP address.
+# >The Service (The Receptionist): This IP belongs to the Service. The Service doesn't do any scoring;
+#  its only job is to look at the "Staff Directory" (the labels) and see which Pods are ready to work.
+# >The Pod/Container (The Specialist): The Service hands the request off to one of my Pods sitting on 
+# one of the Nodes. My FastAPI code inside that container processes the insurance data and calculates 
+# the score.
+# >The Response: The Pod sends the result back through the Service to me.
+##################################################################################
+
+#####################################################################
+# api
+#####################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: fnol-score-service
+#####################################################################
+# desired state
+#####################################################################
+spec:
+  type: LoadBalancer # This tells Azure to give me a public ip
+  selector:
+    app: fnol-score # This must match the label in my deployment
+  ports:
+    - protocol: TCP
+      port: 80       # Port the world sees
+      targetPort: 8000 # Port your FastAPI is listening on
