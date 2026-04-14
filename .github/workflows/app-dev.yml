@@ -98,6 +98,13 @@ jobs:
           # that gets deployed:  fnol-score:dev 
           ACR_NAME=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
 
+          # 2. Construct the full image path
+          FULL_IMAGE_NAME="$ACR_NAME.azurecr.io/fnol-score:${{ github.sha }}"
+
+          # 3. SWAP the placeholder in deployment.yaml for the real path in the file
+          # The '|' is used as a delimiter because the image path has slashes
+          sed -i "s|__IMAGE__|$FULL_IMAGE_NAME|g" ./app/k8s/deployment.yaml
+
           # deploy the service
           # This ensures Load Balancer exists
           kubectl apply -f ./app/k8s/service.yaml
