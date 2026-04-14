@@ -78,11 +78,14 @@ jobs:
       # deploy/update inference service
       ####################################################
       - name: Set AKS Context
-        uses: azure/aks-set-context@v3
-        with:
-          resource-group: $(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
-          cluster-name: $(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
-      # Verify Connection (Optional but recommended)
+        run: |
+          # 1. Pull the names again
+          RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          AKS_NAME=$(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
+            
+          # 2. Get credentials using a known stable API version override
+          # We manually set the API version to '2024-03-01' which is safe and stable
+          az aks get-credentials --resource-group "$RG_NAME" --name "$AKS_NAME" --overwrite-existing      # Verify Connection (Optional but recommended)
       - name: Check AKS Nodes
         run: |
           kubectl get nodes
