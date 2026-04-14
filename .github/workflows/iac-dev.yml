@@ -65,20 +65,27 @@ jobs:
       #########
       # Fix F2026.04.13.20.15.00: AksToAcr access-badge: created on top of the ACR resource
       #########
-      - name: Assign AcrPull to AKS managed identity
+      - name: Assign AcrPull to AKS Kubelet Identity
         run: |
           rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
           acr_name=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
           aks_name=$(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
+          
+          # 1. Get IDs
           ACR_ID=$(az acr show --name "$acr_name" --resource-group "$rg_name" --query id -o tsv)
-          AKS_PRINCIPAL_ID=$(az aks show --name "$aks_name" --resource-group "$rg_name" --query identity.principalId -o tsv)
+          KUBELET_ID=$(az aks show --name "$aks_name" --resource-group "$rg_name" --query identityProfile.kubeletidentity.objectId -o tsv)
 
-          # Use the Kubelet identity, not the Cluster identity
-          AKS_KUBELET_ID=$(az aks show --name "$aks_name" --resource-group "$rg_name" --query identityProfile.kubeletidentity.objectId -o tsv)
+          # 2. Check if the assignment already exists to prevent workflow errors
+          ASSIGNMENT_EXISTS=$(az role assignment list --assignee "$KUBELET_ID" --scope "$ACR_ID" --role AcrPull --query "[].id" -o tsv)
 
-          az role assignment create \
-            --assignee-object-id "$AKS_KUBELET_ID" \
-            --assignee-principal-type ServicePrincipal \
-            --role AcrPull \
-            --scope "$ACR_ID"            
+          if [ -z "$ASSIGNMENT_EXISTS" ]; then
+            echo "Assigning AcrPull role to Kubelet identity..."
+            az role assignment create \
+              --assignee-object-id "$KUBELET_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --role AcrPull \
+              --scope "$ACR_ID"
+          else
+            echo "AcrPull role already assigned. Skipping."
+          fi            
       #########  
