@@ -2,7 +2,7 @@
 param kvFnolPilotName string
 param location string
 
-// uniqueString() generates 13 chars, leaving 11 for your prefix.
+// max len =24
 var kvFnolPilotNameUnique = take( '${kvFnolPilotName}${uniqueString(resourceGroup().id)}' , 24)
 
 resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
