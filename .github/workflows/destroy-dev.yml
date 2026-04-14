@@ -33,9 +33,10 @@ jobs:
       # step 3
       - name: Delete Resource Group
         run: |
+            RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
             echo "Deleting Resource Group ..."
             az group delete \
-            --name "${{ steps.params.outputs.rgname }}" \
+            --name $RG_NAME \
             --yes \
             --no-wait
 
