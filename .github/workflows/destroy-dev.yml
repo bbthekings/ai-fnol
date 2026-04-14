@@ -56,22 +56,23 @@ jobs:
               az keyvault purge --name "$vault" --no-wait || echo "Already purging $vault"
           done
 
-          # Purge Deleted AML Workspaces
-          # 1. Get Subscription ID and Location
-          echo "Searching for all soft-deleted AML workspaces..."
-          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-          # We pick the location from your RG or a default one you're using
-          LOCATION="germanywestcentral" 
-
-          # 2. Use the Location-specific "deletedWorkspaces" path
-          # This is often more reliable than the global provider path
-          DELETED_WS=$(az rest --method get \
-              --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces?api-version=2024-04-01" \
-              --query "value[].name" -o tsv)
-
-          for ws in $DELETED_WS; do
-              echo "Purging AML Workspace: $ws"
-              az rest --method delete \
-                  --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces/$ws?api-version=2024-04-01" \
-                  --verbose || echo "Skip $ws"
-          done
+          # 4. Purge Deleted AML Workspaces
+          # (Silent if empty)
+            echo "Searching for soft-deleted AML Workspaces..."
+            SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+            LOCATION="germanywestcentral" 
+            
+            DELETED_WS=$(az rest --method get \
+                --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces?api-version=2024-04-01" \
+                --query "value[].name" -o tsv 2>/dev/null || echo "")
+            
+            if [ -n "$DELETED_WS" ]; then
+              for ws in $DELETED_WS; do
+                  echo "Purging AML Workspace: $ws"
+                  az rest --method delete \
+                      --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces/$ws?api-version=2024-04-01" \
+                      --verbose || echo "Skip $ws"
+              done
+            else
+              echo "No AML Workspaces found in the recycle bin."
+            fi
