@@ -31,15 +31,6 @@ jobs:
             RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
             echo "rg_name=$RG_NAME" >> $GITHUB_OUTPUT
       # step 3
-      - name: Delete Resource Group
-        run: |
-            RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
-            echo "Deleting Resource Group ..."
-            az group delete \
-            --name $RG_NAME \
-            --yes \
-            --no-wait
-
       - name: Delete and Purge Resources
         run: |
           # 1. Install the ML extension first
