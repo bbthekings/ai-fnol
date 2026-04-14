@@ -54,6 +54,7 @@ jobs:
       #########
       # step 3. Deploy the Bicep file
       - name: Deploy Dev Main Bicep
+        id: dev_main_bicep
         uses: azure/arm-deploy@v2
         with:
           scope: subscription # Match the Bicep targetScope
@@ -62,15 +63,19 @@ jobs:
           parameters: ./iac/env/dev/main.parameters.json
           deploymentName: deploy-dev-infra # just a readable name for the Azure deployment operation
       #########
-      # AksToAcr access-badge: created on top of the ACR resource
+      # Fix F2026.04.13.20.15.00: AksToAcr access-badge: created on top of the ACR resource
       #########
       - name: Assign AcrPull to AKS managed identity
         run: |
-          ACR_ID=$(az acr show --name acrfnol --resource-group rg-fnol-pilot-dev --query id -o tsv)
-          AKS_PRINCIPAL_ID=$(az aks show --name aks-fnol-pilot --resource-group rg-fnol-pilot-dev --query identity.principalId -o tsv)
+          rg_name="${{ steps.dev_main_bicep.outputs.rgname.value }}"
+          acr_name="${{ steps.dev_main_bicep.outputs.acrName.value }}"
+          aks_name="${{ steps.dev_main_bicep.outputs.aksFnolPilotName.value }}"
+          ACR_ID=$(az acr show --name "$acr_name" --resource-group "$rg_name" --query id -o tsv)
+          AKS_PRINCIPAL_ID=$(az aks show --name "$aks_name" --resource-group "$rg_name" --query identity.principalId -o tsv)
 
           az role assignment create \
             --assignee-object-id "$AKS_PRINCIPAL_ID" \
             --assignee-principal-type ServicePrincipal \
             --role AcrPull \
-            --scope "$ACR_ID"          
+            --scope "$ACR_ID"        
+      #########  

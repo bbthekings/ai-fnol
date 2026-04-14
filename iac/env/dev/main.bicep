@@ -109,7 +109,8 @@ module aksModule '../../modules/aks/main.bicep' = {
       ]
 }
 
-// this is added as workflow step after azure/arm-deploy@v2 (gh action)
+// Fix F2026.04.13.20.15.00
+// this was replaced as workflow step after azure/arm-deploy@v2 (gh action)
 // call aks --access role--> acr
 /* module aksToAcrRoleModule '../../modules/role-assignment-acr/main.bicep' = {
   name: 'aksToAcrRoleDeployment'
