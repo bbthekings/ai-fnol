@@ -2,10 +2,13 @@
 param kvFnolPilotName string
 param location string
 
+// uniqueString() generates 13 chars, leaving 11 for your prefix.
+var kvFnolPilotNameUnique = '${kvFnolPilotName}${uniqueString(resourceGroup().id)}' 
+
 resource kvFnolPilot 'Microsoft.KeyVault/vaults@2024-11-01' = {
   
  location: location
- name: kvFnolPilotName
+ name: kvFnolPilotNameUnique
 
  properties: {
   tenantId: subscription().tenantId
