@@ -40,13 +40,13 @@ jobs:
           # 2. Get the RG name from the previous step
           RG_NAME="${{ steps.params.outputs.rg_name }}"
           # Check if the Resource Group exists
-          if az group exists --name "$RG_NAME"; then
-            echo "Resource Group $RG_NAME found. Starting deletion..."
-            az group delete --name "$RG_NAME" --yes --no-wait
-          else
-            echo "Resource Group $RG_NAME does not exist. Skipping deletion."
-          fi
-          
+          EXISTS=$(az group exists --name "$RG_NAME")
+            if [ "$EXISTS" == "true" ]; then
+              echo "Resource Group $RG_NAME found. Starting deletion..."
+              az group delete --name "$RG_NAME" --yes --no-wait
+            else
+              echo "Resource Group $RG_NAME does not exist. Skipping deletion."
+            fi          
           # 3. Purge Key Vaults (Global loop)
           echo "Searching for all soft-deleted Key Vaults..."
           DELETED_VAULTS=$(az keyvault list-deleted --query "[].name" -o tsv)
