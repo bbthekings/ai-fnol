@@ -46,8 +46,9 @@ jobs:
               az group delete --name "$RG_NAME" --yes --no-wait
             else
               echo "Resource Group $RG_NAME does not exist. Skipping deletion."
-            fi          
-          # 3. Purge Key Vaults (Global loop)
+            fi      
+
+          # 3. Purge Deleted Key Vaults (Global loop)
           echo "Searching for all soft-deleted Key Vaults..."
           DELETED_VAULTS=$(az keyvault list-deleted --query "[].name" -o tsv)
           for vault in $DELETED_VAULTS; do
@@ -55,21 +56,21 @@ jobs:
               az keyvault purge --name "$vault" --no-wait || echo "Already purging $vault"
           done
 
-          # 4. Purge AML Workspaces
-          # Get the current subscription ID
+          # Purge Deleted AML Workspaces
+          # 1. Get Subscription ID and Location
           SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          # We pick the location from your RG or a default one you're using
+          LOCATION="germanywestcentral" 
 
-          # 3. List soft-deleted AML workspaces
-          # We store them in a variable first to avoid xargs errors if the list is empty
+          # 2. Use the Location-specific "deletedWorkspaces" path
+          # This is often more reliable than the global provider path
           DELETED_WS=$(az rest --method get \
-              --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/deletedWorkspaces?api-version=2024-04-01-preview" \
+              --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces?api-version=2024-04-01" \
               --query "value[].name" -o tsv)
 
-          # 4. Iterate and Purge
           for ws in $DELETED_WS; do
               echo "Purging AML Workspace: $ws"
               az rest --method delete \
-                  --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/deletedWorkspaces/$ws?api-version=2024-04-01-preview" \
-                  --verbose || echo "Failed to purge $ws"
+                  --uri "/subscriptions/$SUBSCRIPTION_ID/providers/Microsoft.MachineLearningServices/locations/$LOCATION/deletedWorkspaces/$ws?api-version=2024-04-01" \
+                  --verbose || echo "Skip $ws"
           done
-
