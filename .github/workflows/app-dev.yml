@@ -34,7 +34,7 @@ permissions:
 jobs:
   ######
   # job 1: 'deploy-infra'
-  deploy-infra:
+  deploy-app:
     runs-on: ubuntu-latest
     ###################################################
     # all steps
