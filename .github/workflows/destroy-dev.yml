@@ -40,22 +40,31 @@ jobs:
             --yes \
             --no-wait
 
-            # 1. Purge all Soft-Deleted Key Vaults
-            echo "Searching for all soft-deleted Key Vaults..."
-            DELETED_VAULTS=$(az keyvault list-deleted --query "[].name" -o tsv)
+      - name: Delete and Purge Resources
+        run: |
+          # 1. Install the ML extension first
+          echo "Installing Azure ML extension..."
+          az extension add --name ml --yes
 
-            for vault in $DELETED_VAULTS; do
-                echo "Purging Key Vault: $vault"
-                az keyvault purge --name "$vault" --no-wait
-            done
-
-            # 2. Purge all Soft-Deleted AML Workspaces
-            echo "Searching for all soft-deleted AML Workspaces..."
-            # Note: AML requires the location to find deleted workspaces
-            DELETED_WORKSPACES=$(az ml workspace list-deleted --query "[].name" -o tsv)
-
-            for ws in $DELETED_WORKSPACES; do
-                echo "Permanently deleting AML Workspace: $ws"
-                az ml workspace delete --name "$ws" --permanently-delete --yes --no-wait
-            done
+          # 2. Get the RG name from the previous step
+          RG_NAME="${{ steps.params.outputs.rg_name }}"
+          
+          echo "Deleting Resource Group: $RG_NAME"
+          az group delete --name "$RG_NAME" --yes --no-wait
+          
+          # 3. Purge Key Vaults (Global loop)
+          echo "Searching for all soft-deleted Key Vaults..."
+          DELETED_VAULTS=$(az keyvault list-deleted --query "[].name" -o tsv)
+          for vault in $DELETED_VAULTS; do
+              echo "Purging Key Vault: $vault"
+              az keyvault purge --name "$vault" --no-wait || echo "Already purging $vault"
+          done
+          
+          # 4. Purge AML Workspaces (Global loop)
+          echo "Searching for all soft-deleted AML Workspaces..."
+          DELETED_WORKSPACES=$(az ml workspace list-deleted --query "[].name" -o tsv)
+          for ws in $DELETED_WORKSPACES; do
+              echo "Permanently deleting AML Workspace: $ws"
+              az ml workspace delete --name "$ws" --permanently-delete --yes --no-wait || echo "Already purging $ws"
+          done
 
