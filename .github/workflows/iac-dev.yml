@@ -67,10 +67,11 @@ jobs:
       #########
       - name: Assign AcrPull to AKS managed identity
         run: |
-          rg_name="${{ steps.dev_main_bicep.outputs.rgname.value }}"
-          acr_name="${{ steps.dev_main_bicep.outputs.acrName.value }}"
-          aks_name="${{ steps.dev_main_bicep.outputs.aksFnolPilotName.value }}"
+          rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          acr_name=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
+          aks_name=$(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
           ACR_ID=$(az acr show --name "$acr_name" --resource-group "$rg_name" --query id -o tsv)
+
           AKS_PRINCIPAL_ID=$(az aks show --name "$aks_name" --resource-group "$rg_name" --query identity.principalId -o tsv)
 
           az role assignment create \
