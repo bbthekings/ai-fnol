@@ -62,6 +62,7 @@ jobs:
           template: ./iac/env/dev/main.bicep
           parameters: ./iac/env/dev/main.parameters.json
           deploymentName: deploy-dev-infra # just a readable name for the Azure deployment operation
+          failOnStdErr: false # because warnings are being written to stderr if failOnStdErr: true
       #########
       # Fix F2026.04.13.20.15.00: AksToAcr access-badge: created on top of the ACR resource
       #########

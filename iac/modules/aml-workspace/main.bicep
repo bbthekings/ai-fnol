@@ -46,7 +46,7 @@ resource pilotUploadsDatastore 'Microsoft.MachineLearningServices/workspaces/dat
     datastoreType: 'AzureBlob'
     accountName: storageAccountName
     containerName: 'pilot-uploads'
-    endpoint: 'core.windows.net'
+    endpoint: environment().suffixes.storage // 'core.windows.net'
     protocol: 'https'
     serviceDataAccessAuthIdentity: 'WorkspaceSystemAssignedIdentity'
     credentials: {
