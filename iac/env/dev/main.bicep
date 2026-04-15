@@ -132,6 +132,7 @@ module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
         location: location 
         amlWorkspaceName:  amlWorkspaceName
         storageAccountId: storageModule.outputs.storageAccountId 
+        storageAccountName: storageModule.outputs.storageAccountName
         keyVaultId: keyvaultModule.outputs.keyVaultId
         applInsightsId: applInsightsModule.outputs.applInsightsId 
         containerRegistryId: acrModule.outputs.acrFnolPilotId
