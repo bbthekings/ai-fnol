@@ -90,3 +90,35 @@ jobs:
             echo "AcrPull role already assigned. Skipping."
           fi            
       #########  
+      - name: Assign Storage Blob Data Contributor to AML workspace identity
+        run: |
+          rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          aml_name=$(jq -r '.parameters.amlWorkspaceName.value' ./iac/env/dev/main.parameters.json)
+          st_name=$(jq -r '.parameters.stFnolPilotName.value' ./iac/env/dev/main.parameters.json)
+
+          AML_PRINCIPAL_ID=$(az ml workspace show \
+            --name "$aml_name" \
+            --resource-group "$rg_name" \
+            --query identity.principal_id -o tsv)
+
+          STORAGE_ID=$(az storage account show \
+            --name "$st_name" \
+            --resource-group "$rg_name" \
+            --query id -o tsv)
+
+          ASSIGNMENT_EXISTS=$(az role assignment list \
+            --assignee "$AML_PRINCIPAL_ID" \
+            --scope "$STORAGE_ID" \
+            --role "Storage Blob Data Contributor" \
+            --query "[].id" -o tsv)
+
+          if [ -z "$ASSIGNMENT_EXISTS" ]; then
+            echo "Assigning Storage Blob Data Contributor to AML workspace identity..."
+            az role assignment create \
+              --assignee-object-id "$AML_PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --role "Storage Blob Data Contributor" \
+              --scope "$STORAGE_ID"
+          else
+            echo "Storage role already assigned. Skipping."
+          fi
