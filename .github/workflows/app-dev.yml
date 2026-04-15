@@ -57,6 +57,8 @@ jobs:
 
       ####################################################
       # ACR: login, build docker image, push it to ACR
+      # Note: Later, instead of gh action building the Docker image, 
+      # the Azure ML Workspace takes over that responsibility.
       ####################################################
       # This uses the identity from step 2 to get a temporary docker token
       - name: Login to ACR, build docker image, push it to ACR

@@ -20,7 +20,7 @@ resource amlFnolWspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01'
   identity: {
     type: 'SystemAssigned' // CRITICAL: Allows the workspace to talk to the Key Vault
   }
-  // link to storage account
+// link to storage account, keyvault, container registry, appl insights
 properties: {
     friendlyName: 'FNOL Pilot Machine Learning Workspace'
     publicNetworkAccess: 'Enabled'
