@@ -142,7 +142,11 @@ module amlWorkspaceModule '../../modules/aml-workspace/main.bicep' = {
       ]
 }
 
-
+output resourceGroupName string = rgname
+output amlWorkspaceName string = amlWorkspaceModule.outputs.amlWorkspaceNameOut
+output storageAccountName string = storageModule.outputs.storageAccountName
+output acrName string = acrModule.outputs.acrName
+output aksName string = aksModule.outputs.aksName
 
 
  

@@ -10,7 +10,6 @@ param containerRegistryId string
 
 var amlWorkspaceNameUnique string = take( '${amlWorkspaceName}${uniqueString(resourceGroup().id)}' , 24)
 
-
 resource amlFnolWspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   
   name: amlWorkspaceNameUnique

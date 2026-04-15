@@ -27,3 +27,4 @@ resource aksFnolPilot 'Microsoft.ContainerService/managedClusters@2024-01-01' = 
 
 // Output the master-server identity ID so you can grant it access to ACR later
 output aksIdentityId string = aksFnolPilot.identity.principalId
+output aksName string = aksFnolPilot.name

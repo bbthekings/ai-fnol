@@ -92,9 +92,9 @@ jobs:
       #########  
       - name: Assign Storage Blob Data Contributor to AML workspace identity
         run: |
-          rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
-          aml_name=$(jq -r '.parameters.amlWorkspaceName.value' ./iac/env/dev/main.parameters.json)
-          st_name=$(jq -r '.parameters.stFnolPilotName.value' ./iac/env/dev/main.parameters.json)
+          rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
+          aml_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceName.value" -o tsv)
+          st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
 
           AML_PRINCIPAL_ID=$(az ml workspace show \
             --name "$aml_name" \
