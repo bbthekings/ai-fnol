@@ -127,7 +127,7 @@ jobs:
           # Find the storage account in the RG that starts with 'stfnol'
           rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
           st_name=$(az storage account list -g $rg_name --query "[0].name" -o tsv) # first one in list
-          container_name=$(az storage container list --account-name $st_name --query "[0].name" -o tsv) # first one in list
+          container_name='pilot-uploads'
           echo $st_name
           echo $container_name
 
