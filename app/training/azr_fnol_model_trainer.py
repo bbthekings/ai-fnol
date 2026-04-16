@@ -25,8 +25,6 @@ def train_model(data_path: str):
     X = df.drop('risk_score', axis=1)
     y = df['risk_score']
 
-    X = pd.get_dummies(X, columns=['impact_type'], drop_first=True)
-
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
