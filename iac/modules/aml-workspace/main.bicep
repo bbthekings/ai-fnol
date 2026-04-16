@@ -55,7 +55,28 @@ resource pilotUploadsDatastore 'Microsoft.MachineLearningServices/workspaces/dat
   }
 }
 
+// compute resource 'cpu-cluster' for training
+resource mlCompute 'Microsoft.MachineLearningServices/workspaces/computes@2023-04-01' = {
+  parent: amlFnolWspace
+  name: 'cpu-cluster'
+  location: location
+  properties: {
+    computeType: 'AmlCompute'
+    properties: {
+      vmSize: 'Standard_DS3_v2'
+      scaleSettings: {
+        maxNodeCount: 2
+        minNodeCount: 0
+        // Optional: How long to wait before killing the VM after the job ends
+        nodeIdleTimeBeforeScaleDown: 'PT120S' 
+      }
+      remoteLoginPortPublicAccess: 'Disabled'
+    }
+  }
+}
+
 output amlWorkspaceId string = amlFnolWspace.id
 output amlWorkspaceNameOut string = amlFnolWspace.name
 output pilotUploadsDatastoreId string = pilotUploadsDatastore.id
+output mlComputeId string = mlCompute.id
 
