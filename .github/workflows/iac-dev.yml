@@ -117,7 +117,7 @@ jobs:
             --workspace-name "$ml_workspace" \
             --identity-type system_assigned
 
-      #########  
+      #########
       - name: Assign Storage Blob Data Contributor to AML workspace identity
         run: |
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
