@@ -1,3 +1,12 @@
+# --- Web Server (Inference) ---
 fastapi
 uvicorn[standard]
 pydantic
+
+# --- Training & Math (The essentials) ---
+pandas
+scikit-learn
+joblib
+pyarrow           # Required to read the .parquet file!
+mlflow 
+azureml-mlflow    # Required to talk to Azure's MLflow server

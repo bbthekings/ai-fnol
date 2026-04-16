@@ -36,7 +36,8 @@ properties: {
   }
 }
 
-// Define the storage as a child of the Workspace
+// create an aml.data-store 'ds_pilot_uploads' that points to storage-account.blob='pilot-uploads'
+// access is badge-managed
 resource pilotUploadsDatastore 'Microsoft.MachineLearningServices/workspaces/datastores@2023-04-01' = {
   parent: amlFnolWspace
   name: 'ds_pilot_uploads' 

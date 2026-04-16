@@ -122,3 +122,4 @@ jobs:
           else
             echo "Storage role already assigned. Skipping."
           fi
+
