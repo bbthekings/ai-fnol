@@ -8,7 +8,7 @@ command: >-
 inputs:
   claims_data:
     type: uri_file
-    path: azureml://datastores/ds_pilot_uploads/paths/fnol_training_dataset.parquet
+    path: azureml://datastores/ds_pilot_uploads/paths/paths/fnol_training_dataset.parquet
     mode: download # do not mount the file for now
 
 environment:
