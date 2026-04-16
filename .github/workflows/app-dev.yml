@@ -149,14 +149,18 @@ jobs:
       - name: Run Training Job
         id: train_job
         run: |
-                # Run the job and capture the Run ID
-                run_id=$(az ml job create --file ./iac/ml-jobs/fnol_model_trainer_config.yml --query name -o tsv)
-                echo "RUN_ID=$run_id" >> $GITHUB_ENV
-
                 rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
                 ml_workspace=$(az ml workspace list -g $rg_name --query "[0].name" -o tsv)
                 echo $rg_name
                 echo $ml_workspace
+
+                # Run the job and capture the Run ID
+                run_id=$(az ml job create --file ./iac/ml-jobs/fnol_model_trainer_config.yml \
+                         --resource-group $rg_name \
+                         --workspace-name $ml_workspace \
+                         --query name -o tsv)
+                echo "RUN_ID=$run_id" >> $GITHUB_ENV
+
 
                 # Run the job with the required -g and -w flags
                 run_id=$(az ml job create \
