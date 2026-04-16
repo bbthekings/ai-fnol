@@ -158,7 +158,7 @@ jobs:
       - name: Assign Storage Blob Data Reader to AML compute identity
         run: |
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
-          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspace.value" -o tsv)
+          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceName.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
           
           echo "ml_workspace: '$ml_workspace'"
