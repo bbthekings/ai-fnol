@@ -75,7 +75,7 @@ resource mlCompute 'Microsoft.MachineLearningServices/workspaces/computes@2023-0
 }
 
 output amlWorkspaceId string = amlFnolWspace.id
-output amlWorkspaceNameOut string = amlFnolWspace.name
+output amlWorkspaceName string = amlFnolWspace.name
 output pilotUploadsDatastoreId string = pilotUploadsDatastore.id
 output mlComputeId string = mlCompute.id
 
