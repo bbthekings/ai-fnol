@@ -9,6 +9,7 @@ inputs:
   claims_data:
     type: uri_file
     path: azureml://datastores/ds_pilot_uploads/paths/fnol_training_dataset.parquet
+    mode: download # do not mount the file for now
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04

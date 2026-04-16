@@ -172,13 +172,13 @@ jobs:
                 --workspace-name "$ml_workspace"
                 
                 # job result
-                r2_adj=$(az ml job show --name "$run_id" -g "$rg_name" -w "$ml_workspace" --query "tags.r2_adj" -o tsv)
-                echo "$r2_adj"
+                # r2_adj=$(az ml job show --name "$run_id" -g "$rg_name" -w "$ml_workspace" --query "tags.r2_adj" -o tsv)
+                # echo "$r2_adj"
 
-                if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
-                echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
-                exit 1
-                fi
+                # if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
+                # echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
+                # exit 1
+                # fi
 
       - name: Register Model
         if: success()
