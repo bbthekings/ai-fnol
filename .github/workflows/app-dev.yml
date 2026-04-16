@@ -142,7 +142,7 @@ jobs:
             --account-name "$st_name" \
             --account-key "$st_key" \
             --container-name "$container_name" \
-            --file app/data/fnol_training_dataset.parquet \
+            --file app/training/data/fnol_training_dataset.parquet \
             --name paths/fnol_training_dataset.parquet \
             --overwrite
 

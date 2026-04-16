@@ -12,7 +12,7 @@ inputs:
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
-  conda_file: conda-train.yml
+  conda_file: conda.yml
 
 compute: azureml:cpu-cluster
 display_name: fnol-pilot-model-training
