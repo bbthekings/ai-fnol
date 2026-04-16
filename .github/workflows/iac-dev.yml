@@ -90,6 +90,16 @@ jobs:
             echo "AcrPull role already assigned. Skipping."
           fi       
 
+      - name: Inspect AML compute cluster
+        run: |
+          rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
+          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
+
+          az ml compute list \
+            --resource-group "$rg_name" \
+            --workspace-name "$ml_workspace" \
+            -o table
+
       # enable managed identity on the 
       # assign badge: AML compute  --compute-identity='Storage Blob Data Reader Contributor'---> storage-account
       - name: Enable managed identity on AML compute cluster
@@ -146,7 +156,7 @@ jobs:
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
           ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
-
+          echo "ml_workspace: '$ml_workspace'"
           compute_name="cpu-cluster"
 
           STORAGE_ID=$(az storage account show \
