@@ -61,18 +61,17 @@ resource mlCompute 'Microsoft.MachineLearningServices/workspaces/computes@2023-0
   name: 'cpu-cluster'
   location: location
   properties: {
-    computeType: 'AmlCompute'
-    properties: {
-      vmSize: 'Standard_DS3_v2'
-      scaleSettings: {
-        maxNodeCount: 2
-        minNodeCount: 0
-        // Optional: How long to wait before killing the VM after the job ends
-        nodeIdleTimeBeforeScaleDown: 'PT120S' 
-      }
-      remoteLoginPortPublicAccess: 'Disabled'
+  computeType: 'AmlCompute'
+  properties: {
+    // F-Series is often more available on limited subscriptions
+    vmSize: 'Standard_F2s_v2' 
+    vmPriority: 'Dedicated' // Use 'Dedicated' to avoid quota conflicts for now
+    scaleSettings: {
+      maxNodeCount: 1 // Keep it at 1 to stay within tight limits
+      minNodeCount: 0
     }
   }
+}
 }
 
 output amlWorkspaceId string = amlFnolWspace.id
