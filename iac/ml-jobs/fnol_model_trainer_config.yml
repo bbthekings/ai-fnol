@@ -1,9 +1,21 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 type: command
-command: python azr_fnol_model_trainer.py
+command: >-
+  python azr_fnol_model_trainer.py --data_path ${{inputs.claims_data}}
 code: ../../app/training
+inputs:
+  claims_data:
+    type: uri_file
+    path: azureml://datastores/pilot-uploads/paths/fnol_training_dataset.parquet
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
-  conda_file: ../../app/requirements.txt  # Points to requirements file
+  # Use this if you have a requirements.txt instead of a full conda.yaml
+  conda_file: 
+    conda:
+      dependencies:
+        - python=3.10
+        - pip:
+          - -r ../../app/requirements.txt
 compute: azureml:cpu-cluster
 display_name: fnol-pilot-model-training
 experiment_name: insurance-risk-experiment
