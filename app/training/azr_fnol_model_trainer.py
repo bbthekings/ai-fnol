@@ -6,82 +6,63 @@
 # produce metric: r2_adj
 # produce model: "./outputs/fnol_model.pkl"
 #######
+
+import argparse
 import os
 import joblib
 import pandas as pd
 import mlflow
-import mlflow.sklearn  # Explicitly import the sub-module
+import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, root_mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import r2_score
 from azureml.core import Run
 
-# 1. Start MLflow Autologging
-# This captures coefficients, intercept, and standard metrics automatically!
 mlflow.sklearn.autolog() # type: ignore
 
-def train_model():
-    # 1/2. Determine the environment and LOAD data
-    # 'AZUREML_RUN_ID' only exists when running as an official Azure Job
-    if os.environ.get('AZUREML_RUN_ID'):
-        print("Running in Azure ML Cloud...")
-        data_path = 'azureml://datastores/ds_pilot_uploads/paths/fnol_training_dataset.parquet'
-    else:
-        print("Running locally...")
-        data_path = 'fnol_training_dataset.parquet' # The file on your laptop
-        
-    
-    # NOTE: If you are running this in a local test, keep your local filename.
-    # If running in an Azure Job, ensure your 'train_config.yml' inputs point here.
+def train_model(data_path: str):
     df = pd.read_parquet(data_path)
-    
-    # 3. SPLIT DATA
+
     X = df.drop('risk_score', axis=1)
     y = df['risk_score']
-    
+
+    X = pd.get_dummies(X, columns=['impact_type'], drop_first=True)
+
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    # 4. TRAIN (The OLS Math)
-    with mlflow.start_run(): # creates a digital bucket=context manager where everything is saved
+    with mlflow.start_run():
         model = LinearRegression()
         model.fit(X_train, y_train)
 
-        # 5. PREDICT & LOG CUSTOM METRICS
         y_pred = model.predict(X_test)
-        
-        # Calculate Adjusted R2
+
         n = len(y_test)
         p = X_test.shape[1]
         r2 = r2_score(y_test, y_pred)
         r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
-        
-        # Manually log the Adjusted R2 (as Autolog doesn't do the 'Adjusted' version)
+
         mlflow.log_metric("r2_adj", r2_adj)
-        
-        # 6. SAVE MODEL TO ./outputs 
-        # Azure ML will automatically pick this up from this specific folder name
-        os.makedirs('./outputs', exist_ok=True) # temporary path inside a temporary VM's hard drive
-                                                # Azure automatically moves the contents of ./outputs 
-                                                # into a dedicated storage account associated with ml Workspace
-                                                # once this script finishes on the VM
+
+        # temporary path inside a temporary VM's hard drive
+        # Azure automatically moves the contents of ./outputs 
+        # into a dedicated storage account associated with ml Workspace
+        # once this script finishes on the VM
+        os.makedirs("./outputs", exist_ok=True) 
         model_path = "./outputs/fnol_model.pkl"
         joblib.dump(model, model_path)
-        
+
+        mlflow.set_tag("r2_adj", str(r2_adj)) # -> for gh wf
+
         print(f"Model saved to {model_path}")
         print(f"Final Adjusted R2: {r2_adj}")
 
-        # Inside your training script
-        run = Run.get_context()
-        run.parent.set_properties({"r2_adj": str(r2_adj)}) # this goes to app-dev.yml for checking metrics
-
 if __name__ == "__main__":
-    train_model()
-
-
-# In[ ]:
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data_path", type=str, required=True)
+    args = parser.parse_args()
+    train_model(args.data_path)
 
 
 

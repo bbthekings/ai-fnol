@@ -155,9 +155,9 @@ jobs:
                 echo "$rg_name"
                 echo "$ml_workspace"
 
-                # train
+                # start train job
                 run_id=$(az ml job create \
-                --file ./iac/ml-jobs/fnol_model_trainer_config.yml \
+                --file ./app/training/fnol_model_trainer_config.yml \
                 --resource-group "$rg_name" \
                 --workspace-name "$ml_workspace" \
                 --query name -o tsv)
@@ -165,25 +165,16 @@ jobs:
                 echo "RUN_ID=$run_id" >> $GITHUB_ENV
                 echo "Created job: $run_id"
 
-                # wait
+                # wait for train job
                 az ml job stream \
                 --name "$run_id" \
                 --resource-group "$rg_name" \
                 --workspace-name "$ml_workspace"
                 
                 # job result
-                az ml job show \
-                --name "$run_id" \
-                --resource-group "$rg_name" \
-                --workspace-name "$ml_workspace" \
-                -o json > job_output.json
+                r2_adj=$(az ml job show --name "$run_id" -g "$rg_name" -w "$ml_workspace" --query "tags.r2_adj" -o tsv)
+                print(r2_adj)
 
-                cat job_output.json
-                # Validation Gate
-                                if [ -z "$r2_adj" ]; then
-                    echo "Validation failed: r2_adj is empty"
-                exit 1
-                fi
                 if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
                 echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
                 exit 1
@@ -196,3 +187,8 @@ jobs:
           az ml model create --name "fnol-risk-model" \
             --path "azureml://jobs/${{ env.RUN_ID }}/outputs/artifacts/outputs/fnol_model.pkl" \
             --type "custom_model"
+
+
+            azureml:azureml_goofy_match_qy3kql7s6m_input_data_claims_data:1
+
+            

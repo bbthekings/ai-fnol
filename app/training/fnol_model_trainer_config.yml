@@ -1,22 +1,19 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 type: command
+
+code: ../../app/training
 command: >-
   python azr_fnol_model_trainer.py --data_path ${{inputs.claims_data}}
-code: ../../app/training
+
 inputs:
   claims_data:
     type: uri_file
     path: azureml://datastores/ds_pilot_uploads/paths/fnol_training_dataset.parquet
+
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
-  conda_file:
-    name: fnol-pilot-env
-    channels:
-      - conda-forge
-    dependencies:
-      - python=3.10  # This is the line Azure is screaming for
-      - pip:
-        - -r ../../app/requirements.txt          
+  conda_file: conda-train.yml
+
 compute: azureml:cpu-cluster
 display_name: fnol-pilot-model-training
 experiment_name: insurance-risk-experiment
