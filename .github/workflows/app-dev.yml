@@ -134,16 +134,17 @@ jobs:
           #####################################################################
           # assign a role to 'github-actions-sp' for storage account access
           #####################################################################
-          # Get your Service Principal ID (the 'clientId' from your GitHub Secret)
-          SP_ID=${{ secrets.AZURE_CLIENT_ID }}
-          # Get the Resource ID of the storage account
-          ST_ID=$(az storage account show -n $st_name -g $rg_name --query id -o tsv)
-          # Assign the Data Contributor role to 'github-actions-sp'
-          az role assignment create \
-            --assignee $SP_ID \
-            --role "Storage Blob Data Contributor" \
-            --scope $ST_ID
-            
+          # 1. Get the Access Key
+          st_key=$(az storage account keys list -g $rg_name -n $st_name --query "[0].value" -o tsv)
+
+          # 2. Use the key (It ignores RBAC propagation)
+          az storage blob upload \
+            --account-name "$st_name" \
+            --account-key "$st_key" \
+            --container-name "$container_name" \
+            --file app/data/fnol_training_dataset.parquet \
+            --name paths/fnol_training_dataset.parquet
+
           #####################################################################
           az storage blob upload \
             --account-name $st_name \
