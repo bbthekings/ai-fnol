@@ -159,8 +159,6 @@ jobs:
                          --resource-group $rg_name \
                          --workspace-name $ml_workspace \
                          --query name -o tsv)
-                echo "RUN_ID=$run_id" >> $GITHUB_ENV
-
 
                 # Run the job with the required -g and -w flags
                 run_id=$(az ml job create \
@@ -168,12 +166,13 @@ jobs:
                     --resource-group $rg_name \
                     --workspace-name $ml_workspace \
                     --query name -o tsv)
+
                 echo "RUN_ID=$run_id" >> $GITHUB_ENV
-          
+
                 # Evaluate Metrics
                 # Pull the job details and query the specific property
                 # We use -g and -w to ensure the CLI knows exactly where to look
-                r2_adj=$(az ml job show --name ${{ env.RUN_ID }} \
+                r2_adj=$(az ml job show --name "$run_id" \
                         -g $rg_name -w $ml_workspace \
                         --query "properties.r2_adj" -o tsv)
                 echo "Extracted R2_ADJ: $r2_adj"
