@@ -9,4 +9,5 @@ resource rgFnolPilot 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 		}
 
 output rgId string = rgFnolPilot.id
+output resourceGroupName string = rgFnolPilot.name
 

@@ -88,12 +88,30 @@ jobs:
               --scope "$ACR_ID"
           else
             echo "AcrPull role already assigned. Skipping."
-          fi            
+          fi       
+
+      # enable managed identity on the 
+      # assign badge: AML compute  --compute-identity='Storage Blob Data Reader Contributor'---> storage-account
+      - name: Enable managed identity on AML compute cluster
+        run: |
+          rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
+          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
+          st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
+
+          compute_name="cpu-cluster"
+
+          # Enable system-assigned identity on the AML compute cluster
+          az ml compute update \
+            --name "$compute_name" \
+            --resource-group "$rg_name" \
+            --workspace-name "$ml_workspace" \
+            --identity-type system_assigned
+
       #########  
       - name: Assign Storage Blob Data Contributor to AML workspace identity
         run: |
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
-          aml_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceName.value" -o tsv)
+          aml_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
 
           AML_PRINCIPAL_ID=$(az ml workspace show \
@@ -122,4 +140,38 @@ jobs:
           else
             echo "Storage role already assigned. Skipping."
           fi
+      #########
+      - name: Assign Storage Blob Data Reader to AML compute identity
+        run: |
+          rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
+          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
+          st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
 
+          compute_name="cpu-cluster"
+
+          STORAGE_ID=$(az storage account show \
+            --name "$st_name" \
+            --resource-group "$rg_name" \
+            --query id -o tsv)
+
+          COMPUTE_PRINCIPAL_ID=$(az ml compute show \
+            --name "$compute_name" \
+            --resource-group "$rg_name" \
+            --workspace-name "$ml_workspace" \
+            --query identity.principal_id -o tsv)
+
+          ASSIGNMENT_EXISTS=$(az role assignment list \
+            --assignee "$COMPUTE_PRINCIPAL_ID" \
+            --scope "$STORAGE_ID" \
+            --role "Storage Blob Data Contributor" \
+            --query "[].id" -o tsv)
+
+          if [ -z "$ASSIGNMENT_EXISTS" ]; then
+            az role assignment create \
+              --assignee-object-id "$COMPUTE_PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --role "Storage Blob Data Contributor" \
+              --scope "$STORAGE_ID"
+          else
+            echo "Storage Blob Data Reader already assigned to compute identity."
+          fi
