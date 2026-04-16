@@ -155,6 +155,8 @@ jobs:
 
                 rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
                 ml_workspace=$(az ml workspace list -g $rg_name --query "[0].name" -o tsv)
+                echo $rg_name
+                echo $ml_workspace
 
                 # Run the job with the required -g and -w flags
                 run_id=$(az ml job create \
@@ -162,7 +164,8 @@ jobs:
                     --resource-group $rg_name \
                     --workspace-name $ml_workspace \
                     --query name -o tsv)
-                    
+                echo "RUN_ID=$run_id" >> $GITHUB_ENV
+          
       - name: Evaluate Metrics
         run: |
           r2_adj=$(az ml job list-metrics --name ${{ env.RUN_ID }} --query "r2_adj[-1].value" -o tsv)
