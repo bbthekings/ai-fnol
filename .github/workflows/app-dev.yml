@@ -150,34 +150,40 @@ jobs:
         id: train_job 
         run: |
                 rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
-                ml_workspace=$(az ml workspace list -g $rg_name --query "[0].name" -o tsv)
-                echo $rg_name
-                echo $ml_workspace
+                ml_workspace=$(az ml workspace list -g "$rg_name" --query "[0].name" -o tsv)
 
-                # Run the job and capture the Run ID
-                run_id=$(az ml job create --file ./iac/ml-jobs/fnol_model_trainer_config.yml \
-                         --resource-group $rg_name \
-                         --workspace-name $ml_workspace \
-                         --query name -o tsv)
+                echo "$rg_name"
+                echo "$ml_workspace"
 
-                # Run the job with the required -g and -w flags
+                # train
                 run_id=$(az ml job create \
-                    --file ./iac/ml-jobs/fnol_model_trainer_config.yml \
-                    --resource-group $rg_name \
-                    --workspace-name $ml_workspace \
-                    --query name -o tsv)
+                --file ./iac/ml-jobs/fnol_model_trainer_config.yml \
+                --resource-group "$rg_name" \
+                --workspace-name "$ml_workspace" \
+                --query name -o tsv)
 
                 echo "RUN_ID=$run_id" >> $GITHUB_ENV
+                echo "Created job: $run_id"
 
-                # Evaluate Metrics
-                # Pull the job details and query the specific property
-                # We use -g and -w to ensure the CLI knows exactly where to look
-                r2_adj=$(az ml job show --name "$run_id" \
-                        -g $rg_name -w $ml_workspace \
-                        --query "properties.r2_adj" -o tsv)
-                echo "Extracted R2_ADJ: $r2_adj"
+                # wait
+                az ml job stream \
+                --name "$run_id" \
+                --resource-group "$rg_name" \
+                --workspace-name "$ml_workspace"
+                
+                # job result
+                az ml job show \
+                --name "$run_id" \
+                --resource-group "$rg_name" \
+                --workspace-name "$ml_workspace" \
+                -o json > job_output.json
 
+                cat job_output.json
                 # Validation Gate
+                                if [ -z "$r2_adj" ]; then
+                    echo "Validation failed: r2_adj is empty"
+                exit 1
+                fi
                 if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
                 echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
                 exit 1
