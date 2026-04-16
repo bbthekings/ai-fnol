@@ -122,11 +122,14 @@ jobs:
       ###############################################################################################################################
       # upload training data + model training + metrics check + push model 'fnol_model.pkl' to registry
       ###############################################################################################################################
-      - name: Upload Training Data to Blob
+      - name: Upload Data
         run: |
-          st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
-          container_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.containerName.value" -o tsv)
-          
+          # Find the storage account in the RG that starts with 'stfnol'
+          rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          st_name=$(az storage account list -g $rg_name --query "[0].name" -o tsv) # first one in list
+          container_name=$(az storage container list --account-name $st_name --query "[0].name" -o tsv) # first one in list
+          echo $st_name
+          echo $container_name
           az storage blob upload \
             --account-name $st_name \
             --container-name $container_name \
