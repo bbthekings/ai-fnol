@@ -94,6 +94,7 @@ jobs:
         run: |
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
           ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
+          echo "ml_workspace: '$ml_workspace'"
 
           az ml compute list \
             --resource-group "$rg_name" \
@@ -108,8 +109,9 @@ jobs:
           ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
 
-          compute_name="cpu-cluster"
+          echo "ml_workspace: '$ml_workspace'"
 
+          compute_name="cpu-cluster"
           # Enable system-assigned identity on the AML compute cluster
           az ml compute update \
             --name "$compute_name" \
@@ -121,11 +123,13 @@ jobs:
       - name: Assign Storage Blob Data Contributor to AML workspace identity
         run: |
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
-          aml_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
+          ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
 
+          echo "ml_workspace: '$ml_workspace'"
+
           AML_PRINCIPAL_ID=$(az ml workspace show \
-            --name "$aml_name" \
+            --name "$ml_workspace" \
             --resource-group "$rg_name" \
             --query identity.principal_id -o tsv)
 
@@ -156,9 +160,10 @@ jobs:
           rg_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.resourceGroupName.value" -o tsv)
           ml_workspace=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.amlWorkspaceNameOut.value" -o tsv)
           st_name=$(az deployment sub show --name deploy-dev-infra --query "properties.outputs.storageAccountName.value" -o tsv)
+          
           echo "ml_workspace: '$ml_workspace'"
-          compute_name="cpu-cluster"
 
+          compute_name="cpu-cluster"
           STORAGE_ID=$(az storage account show \
             --name "$st_name" \
             --resource-group "$rg_name" \
