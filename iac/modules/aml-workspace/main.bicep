@@ -55,7 +55,7 @@ resource pilotUploadsDatastore 'Microsoft.MachineLearningServices/workspaces/dat
   }
 }
 
-// compute resource 'cpu-cluster' for training
+// compute resource 'cpu-cluster' for training (vm)
 resource mlCompute 'Microsoft.MachineLearningServices/workspaces/computes@2023-04-01' = {
   parent: amlFnolWspace
   name: 'cpu-cluster'

@@ -14,6 +14,7 @@ import mlflow.sklearn  # Explicitly import the sub-module
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, root_mean_squared_error, mean_absolute_error, r2_score
+from azureml.core import Run
 
 # 1. Start MLflow Autologging
 # This captures coefficients, intercept, and standard metrics automatically!
@@ -70,6 +71,10 @@ def train_model():
         
         print(f"Model saved to {model_path}")
         print(f"Final Adjusted R2: {r2_adj}")
+
+        # Inside your training script
+        run = Run.get_context()
+        run.parent.set_properties({"r2_adj": str(r2_adj)}) # this goes to app-dev.yml for checking metrics
 
 if __name__ == "__main__":
     train_model()

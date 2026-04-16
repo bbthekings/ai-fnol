@@ -146,8 +146,8 @@ jobs:
             --name paths/fnol_training_dataset.parquet \
             --overwrite
 
-      - name: Run Training Job
-        id: train_job
+      - name: Run Training Job and evaluate metrics
+        id: train_job 
         run: |
                 rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
                 ml_workspace=$(az ml workspace list -g $rg_name --query "[0].name" -o tsv)
@@ -170,16 +170,19 @@ jobs:
                     --query name -o tsv)
                 echo "RUN_ID=$run_id" >> $GITHUB_ENV
           
-      - name: Evaluate Metrics
-        run: |
-          r2_adj=$(az ml job list-metrics --name ${{ env.RUN_ID }} --query "r2_adj[-1].value" -o tsv)
-          echo "Extracted R2_ADJ: $r2_adj"
-          
-          # We want to exit if the condition (score < 0.99) is TRUE (equals 1)
-          if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
-            echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
-            exit 1
-          fi
+                # Evaluate Metrics
+                # Pull the job details and query the specific property
+                # We use -g and -w to ensure the CLI knows exactly where to look
+                r2_adj=$(az ml job show --name ${{ env.RUN_ID }} \
+                        -g $rg_name -w $ml_workspace \
+                        --query "properties.r2_adj" -o tsv)
+                echo "Extracted R2_ADJ: $r2_adj"
+
+                # Validation Gate
+                if [ "$(echo "$r2_adj < 0.99" | bc -l)" -eq 1 ]; then
+                echo "Validation Failed: R2_ADJ is too low ($r2_adj)"
+                exit 1
+                fi
 
       - name: Register Model
         if: success()
