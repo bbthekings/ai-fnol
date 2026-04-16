@@ -146,14 +146,6 @@ jobs:
             --name paths/fnol_training_dataset.parquet \
             --overwrite
 
-          #####################################################################
-          az storage blob upload \
-            --account-name $st_name \
-            --container-name $container_name \
-            --file app/data/fnol_training_dataset.parquet \
-            --name paths/fnol_training_dataset.parquet \
-            --auth-mode login
-
       - name: Run Training Job
         id: train_job
         run: |
