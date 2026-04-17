@@ -5,9 +5,9 @@ dependencies:
   - python=3.10
   - pip
   - pip:
-      - pandas==2.2.0
+      - pandas
       - scikit-learn==1.7.2
-      - joblib==1.4.2
+      - joblib
       - pyarrow
       - mlflow
       - azureml-mlflow

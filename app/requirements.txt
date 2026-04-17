@@ -4,9 +4,9 @@ uvicorn[standard]
 pydantic
 
 # --- Training & Math (The essentials) ---
-pandas==2.2.0
+pandas
 scikit-learn==1.7.2
-joblib==1.4.2
+joblib
 pyarrow           # Required to read the .parquet file!
 mlflow 
 azureml-mlflow    # Required to talk to Azure's MLflow server
