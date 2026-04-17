@@ -133,11 +133,6 @@ jobs:
                 --resource-group "$rg_name" \
                 --workspace-name "$ml_workspace"            
 
-                # Get the version number of the model you just registered
-                VERSION_NUM=$(az ml model show --name "fnol-risk-model" -g "$rg_name" -w "$ml_workspace" --query "version" -o tsv)
-                # Pass that into your docker build
-                docker build --build-arg VERSION_ARG="$VERSION_NUM" ...
-
       ####################################################
       # ACR: login, download model from aml.model-registry, build docker image, push it to ACR
       # Note: Later, instead of gh action building the Docker image, 
@@ -162,8 +157,14 @@ jobs:
           az acr login --name $ACR_NAME
           # build docker image
           ACR_REGISTRY="$ACR_NAME.azurecr.io"
-          # Get the model-version for the bake-in
-          VERSION_NUM=$(az ml model show --name "fnol-risk-model" -g "$RG_NAME" -w "$WORKSPACE" --query "version" -o tsv)
+
+          #Get the LATEST version number
+          # We query all versions of this model, sort by creation date, and take the top 1
+          VERSION_NUM=$(az ml model list --name "fnol-risk-model" \
+                -g "$RG_NAME" -w "$WORKSPACE" \
+                --query "[0].version" -o tsv)
+
+          echo "Baking Model Version: $VERSION_NUM into Docker image"
 
           # github.sha is constant for the entire duration of this specific workflow run.
           # ARG = "VERSION_ARG" declared in arg list of docker file
