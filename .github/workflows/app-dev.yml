@@ -180,12 +180,15 @@ jobs:
                  exit 1
                 fi
 
-      - name: Register Model
+      - name: Register model
         if: success()
         run: |
-            # Register the model with explicit workspace context
-            az ml model create --name "fnol-risk-model" \
-            --path "azureml://jobs/${{ env.RUN_ID }}/outputs/artifacts/outputs/fnol_model.pkl" \
-            --type "custom_model" \
-            --resource-group "$rg_name" \
-            --workspace-name "$ml_workspace"            
+                rg_name=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+                ml_workspace=$(az ml workspace list -g "$rg_name" --query "[0].name" -o tsv)
+
+                az ml model create \
+                --name "fnol-risk-model" \
+                --path "azureml://jobs/${RUN_ID}/outputs/artifacts/outputs/fnol_model.pkl" \
+                --type "custom_model" \
+                --resource-group "$rg_name" \
+                --workspace-name "$ml_workspace"            
