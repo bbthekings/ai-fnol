@@ -54,7 +54,7 @@ class model_Fnol(BaseModel):
 class model_FnolScore(BaseModel):
     claim_id: str
     score: float
-    category = str
+    category : str
     model_version: str   
 
 
