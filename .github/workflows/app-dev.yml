@@ -55,70 +55,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      ####################################################
-      # ACR: login, build docker image, push it to ACR
-      # Note: Later, instead of gh action building the Docker image, 
-      # the Azure ML Workspace takes over that responsibility.
-      ####################################################
-      # This uses the identity from step 2 to get a temporary docker token
-      - name: Login to ACR, build docker image, push it to ACR
-        run: |
-          # login
-          ACR_NAME=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
-          az acr login --name $ACR_NAME
-          # build docker image
-          ACR_REGISTRY="$ACR_NAME.azurecr.io"
-          # github.sha is constant for the entire duration of this specific workflow run.
-          docker build -t $ACR_REGISTRY/fnol-score:${{ github.sha }} ./app
-          # push image to ACR
-          docker push $ACR_REGISTRY/fnol-score:${{ github.sha }}
-
-      ####################################################
-      # AKS: 
-      # login to AKS (credentials) 
-      # deploy/update k8s deployment 
-      # deploy/update inference service
-      ####################################################
-      - name: Set AKS Context
-        run: |
-          # 1. Pull the names again
-          RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
-          AKS_NAME=$(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
-            
-          # 2. Get credentials using a known stable API version override
-          # We manually set the API version to '2024-03-01' which is safe and stable
-          az aks get-credentials --resource-group "$RG_NAME" --name "$AKS_NAME" --overwrite-existing      # Verify Connection (Optional but recommended)
-      - name: Check AKS Nodes
-        run: |
-          kubectl get nodes
-          kubectl get svc
-          kubectl describe pod -l app=fnol-score
-      # deploy to AKS    
-      - name: Deploy to AKS
-        run: |
-          # Substitute the image name in manifest and apply: ensures version I just built is the one 
-          # that gets deployed:  fnol-score:dev 
-          ACR_NAME=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
-
-          # 2. Construct the full image path
-          FULL_IMAGE_NAME="$ACR_NAME.azurecr.io/fnol-score:${{ github.sha }}"
-
-          # 3. SWAP the placeholder in deployment.yaml for the real path in the file
-          # The '|' is used as a delimiter because the image path has slashes
-          sed -i "s|__IMAGE__|$FULL_IMAGE_NAME|g" ./app/k8s/deployment.yaml
-
-          # deploy the service
-          # This ensures Load Balancer exists
-          kubectl apply -f ./app/k8s/service.yaml
-          
-          # deploy the pods
-          kubectl apply -f ./app/k8s/deployment.yaml  
-
-          # pull image from ACR with version "github.sha"
-          # substitute ":dev" -> "github.sha"
-          # if master notes a change in the sha, it replaces the old pod with a new one 
-          # running the image with the new sha
-          kubectl set image deployment/fnol-score-deployment fnol-score-container=$ACR_NAME.azurecr.io/fnol-score:${{ github.sha }}
       ###############################################################################################################################
       # upload training data + model training + metrics check + push model 'fnol_model.pkl' to registry
       ###############################################################################################################################
@@ -166,6 +102,10 @@ jobs:
                 echo "Created job: $run_id"
 
                 # wait for train job
+                # 'az ml job create' returns a Run ID. It does not wait for the model
+                # to finish training. Without stream, the GitHub Action would move to 
+                # the next step immediately, try to register a model that doesn't exist yet, 
+                # and crash.
                 az ml job stream \
                 --name "$run_id" \
                 --resource-group "$rg_name" \
@@ -192,3 +132,88 @@ jobs:
                 --type "custom_model" \
                 --resource-group "$rg_name" \
                 --workspace-name "$ml_workspace"            
+
+                # Get the version number of the model you just registered
+                VERSION_NUM=$(az ml model show --name "fnol-risk-model" -g "$rg_name" -w "$ml_workspace" --query "version" -o tsv)
+                # Pass that into your docker build
+                docker build --build-arg VERSION_ARG="$VERSION_NUM" ...
+
+      ####################################################
+      # ACR: login, download model from aml.model-registry, build docker image, push it to ACR
+      # Note: Later, instead of gh action building the Docker image, 
+      # the Azure ML Workspace takes over that responsibility.
+      ####################################################
+      # This uses the identity from step 2 to get a temporary docker token
+      - name: Login to ACR, download model from aml.model-registry, build docker image, push it to ACR
+        run: |
+          RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          # Assuming workspace was discovered in previous steps or via jq
+          WORKSPACE=$(az ml workspace list -g "$RG_NAME" --query "[0].name" -o tsv)
+          # DOWNLOAD THE MODEL into the ./app context
+          # We put it in ./app/model (/fnol-risk-model/model.pkl) so the Dockerfile can COPY it
+          mkdir -p ./app/model
+          az ml model download --name "fnol-risk-model" \
+             --version 1 \
+             --download-path ./app/model \
+             -g "$RG_NAME" -w "$WORKSPACE"
+
+          # login to ACR
+          ACR_NAME=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
+          az acr login --name $ACR_NAME
+          # build docker image
+          ACR_REGISTRY="$ACR_NAME.azurecr.io"
+          # Get the model-version for the bake-in
+          VERSION_NUM=$(az ml model show --name "fnol-risk-model" -g "$RG_NAME" -w "$WORKSPACE" --query "version" -o tsv)
+
+          # github.sha is constant for the entire duration of this specific workflow run.
+          # ARG = "VERSION_ARG" declared in arg list of docker file
+          docker build --build-arg VERSION_ARG="$VERSION_NUM" -t $ACR_REGISTRY/fnol-score:${{ github.sha }} ./app
+          # push image to ACR
+          docker push $ACR_REGISTRY/fnol-score:${{ github.sha }}
+      ####################################################
+      # AKS: 
+      # login to AKS (credentials) 
+      # deploy/update k8s deployment 
+      # deploy/update inference service
+      ####################################################
+      - name: Set AKS Context
+        run: |
+          # 1. Pull the names again
+          RG_NAME=$(jq -r '.parameters.rgname.value' ./iac/env/dev/main.parameters.json)
+          AKS_NAME=$(jq -r '.parameters.aksFnolPilotName.value' ./iac/env/dev/main.parameters.json)
+            
+          # 2. Get credentials using a known stable API version override
+          # We manually set the API version to '2024-03-01' which is safe and stable
+          az aks get-credentials --resource-group "$RG_NAME" --name "$AKS_NAME" --overwrite-existing      # Verify Connection (Optional but recommended)
+      - name: Check AKS Nodes
+        run: |
+          kubectl get nodes
+          kubectl get svc
+          kubectl describe pod -l app=fnol-score
+      # deploy to AKS    
+      - name: Deploy to AKS
+        run: |
+          # Substitute the image name in manifest and apply: ensures version I just built is the one 
+          # that gets deployed:  fnol-score:dev 
+          ACR_NAME=$(jq -r '.parameters.acrName.value' ./iac/env/dev/main.parameters.json)
+
+          # 2. Construct the full image path
+          FULL_IMAGE_NAME="$ACR_NAME.azurecr.io/fnol-score:${{ github.sha }}"
+
+          # 3. SWAP the placeholder in deployment.yaml for the real path in the file
+          # The '|' is used as a delimiter because the image path has slashes
+          sed -i "s|__IMAGE__|$FULL_IMAGE_NAME|g" ./app/k8s/deployment.yaml
+
+          # deploy the service
+          # This ensures Load Balancer exists
+          kubectl apply -f ./app/k8s/service.yaml
+          
+          # deploy the pods
+          kubectl apply -f ./app/k8s/deployment.yaml  
+
+          # pull image from ACR with version "github.sha"
+          # substitute ":dev" -> "github.sha"
+          # if master notes a change in the sha, it replaces the old pod with a new one 
+          # running the image with the new sha
+          kubectl set image deployment/fnol-score-deployment fnol-score-container=$ACR_NAME.azurecr.io/fnol-score:${{ github.sha }}
+
