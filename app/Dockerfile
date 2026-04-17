@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # gh action: The model was downloaded to ./app/model/fnol-risk-model/model.pkl
 # We copy it into the root of the /app container directory
-COPY model/fnol-risk-model/model.pkl ./model.pkl
+COPY model.pkl ./model.pkl
 
 # Copy-in the source code
 COPY src/score/app.py ./app.py
